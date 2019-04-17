@@ -32,11 +32,11 @@ class DangoCog(commands.Cog):
                            colour=discord.Colour.dark_green())
         await ctx.send(embed=em)
 
-    @commands.command()
+    @commands.command(aliases=["scoreboard"])
     async def leaderboard(self, ctx: commands.context):
         """Show the leaderboard"""
         people = await sql.fetch("SELECT memberid, score FROM scoreboard WHERE serverid=? ORDER BY score", str(ctx.message.guild.id))
-        interval = await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(ctx.message.guild.id))
+        interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(ctx.message.guild.id)))[0][0]
         emoji = pickle.loads(await sql.fetch("SELECT emoji FROM servers WHERE serverid=?", str(ctx.message.guild.id)))
         total_dangos = sum([int(person[1]) for person in people]) if people is not None else 0
         message = f"{emoji} **Scoreboard** {emoji}"
