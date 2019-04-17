@@ -78,7 +78,8 @@ async def on_guild_remove(guild: discord.Guild):
 async def on_message(message: discord.Message):
     if not isinstance(message.channel, discord.abc.GuildChannel):
         return
-    if not message.author.bot:
+    ctx = await bot.get_context(message)
+    if not message.author.bot and not ctx.valid:
         await sql.execute("INSERT INTO messages VALUES (?, ?)", str(message.guild.id), str(message.id))
         messages = len(await sql.fetch("SELECT 1 FROM messages WHERE serverid=?", str(message.guild.id)))
         interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(message.guild.id)))[0][0]
@@ -101,7 +102,8 @@ async def on_message(message: discord.Message):
                 await message.add_reaction(emoji)
             except discord.Forbidden:
                 pass
-    await bot.process_commands(message)
+    else:
+        await bot.invoke(ctx)
 
 
 @bot.event
