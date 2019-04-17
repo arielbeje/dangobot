@@ -1,3 +1,4 @@
+import asyncio
 import os
 import pickle
 from utils import sql
@@ -92,3 +93,8 @@ async def on_message(message: discord.Message):
         emoji = pickle.loads("SELECT emoji FROM servers WHERE serverid=?", str(message.server.id))
         await message.channel.send(str(emoji))
     await bot.processcommands(message)
+
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(initdb())
+    bot.load_extension("cogs.dango")
+    bot.run(os.environ["DANGOBOT"], bot=True, reconnect=True)
