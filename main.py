@@ -99,6 +99,30 @@ async def on_message(message: discord.Message):
             await message.channel.send(str(emoji))
     await bot.process_commands(message)
 
+
+@bot.event
+async def on_command_error(ctx: commands.Context, error: Exception):
+    origerror = getattr(error, "original", error)
+    if isinstance(origerror, commands.MissingPermissions):
+        description = origerror.args[0].replace('run command', f'use the command `{ctx.command}`')
+        em = discord.Embed(title="Error",
+                           description=description,
+                           colour=discord.Colour.red())
+        await ctx.send(embed=em)
+    elif isinstance(origerror, discord.ext.commands.errors.CommandNotFound):
+        pass
+    else:
+        try:
+            errorMsg = origerror.message
+        except AttributeError:
+            errorMsg = str(origerror)
+        em = discord.Embed(title="Error",
+                           description=f"I've encountered an error ({type(origerror)}). Please contact my creator. ```{errorMsg}```",
+                           colour=discord.Colour.red())
+        await ctx.send(embed=em)
+        raise error
+
+
 if __name__ == "__main__":
     asyncio.get_event_loop().run_until_complete(initdb())
     bot.load_extension("cogs.dango")
