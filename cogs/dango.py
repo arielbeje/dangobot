@@ -37,6 +37,16 @@ class DangoCog(commands.Cog):
                            colour=discord.Colour.dark_green())
         await ctx.send(embed=em)
 
+    @commands.command(name="setprefix")
+    @commands.has_permissions(administrator=True)
+    async def set_perfix(self, ctx: commands.Context, *, prefix: str):
+        """Set a different prefix for the bot"""
+        await sql.execute("UPDATE servers SET prefix=? WHERE serverid=?", prefix, str(ctx.message.guild.id))
+        em = discord.Embed(title="Updated prefix",
+                           description=f"Updated prefix is `{prefix}`",
+                           colour=discord.Colour.dark_green())
+        await ctx.send(embed=em)
+
     @commands.command(aliases=["scoreboard"])
     async def leaderboard(self, ctx: commands.context):
         """Show the leaderboard"""
