@@ -97,4 +97,5 @@ async def on_message(message: discord.Message):
 if __name__ == "__main__":
     asyncio.get_event_loop().run_until_complete(initdb())
     bot.load_extension("cogs.dango")
+    bot.load_extension("cogs.info")
     bot.run(os.environ["DANGOBOT"], bot=True, reconnect=True)
