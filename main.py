@@ -1,4 +1,5 @@
 import os
+import pickle
 from utils import sql
 
 import logging
@@ -31,7 +32,7 @@ async def initdb():
         if "messages" not in tables:
             await sql.execute("CREATE TABLE faq (serverid varchar(20), messageid varchar(20))")
         if "scoreboard" not in tables:
-            await sql.execute("CREATE TABLE scoreboard (serverid varchar(20), userid varchar(20), score integer)")
+            await sql.execute("CREATE TABLE scoreboard (serverid varchar(20), memberid varchar(20), score integer)")
 
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
@@ -71,3 +72,23 @@ async def on_guild_join(guild: discord.Guild):
 async def on_guild_remove(guild: discord.Guild):
     logger.info(f"Left server \'{guild.name}\' - {guild.id}")
     await sql.deleteserver(guild.id)
+
+
+@bot.event
+async def on_message(message: discord.Message):
+    if not isinstance(message.channel, discord.abc.GuildChannel):
+        return
+    messages = len(sql.fetch("SELECT 1 FROM messages WHERE serverid=?", str(message.guild.id)))
+    interval = int(await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(message.guild.id)))
+    if messages >= interval:
+        if not await sql.fetch("SELECT 1 FROM scoreboard WHERE serverid=? AND memberid=?",
+                               str(message.server.id), str(message.author.id)):
+            await sql.execute("INSERT INTO scoreboard VALUES (?, ?, ?)",
+                              str(message.guild.id), str(message.author.id), 1)
+        else:
+            await sql.execute("UPDATE scoreboard SET score=score+1 WHERE serverid=? AND memberid=?",
+                              str(message.server.id), str(message.author.id))
+        await sql.execute("DELETE FROM messages WHERE serverid=?", str(message.guild.id))
+        emoji = pickle.loads("SELECT emoji FROM servers WHERE serverid=?", str(message.server.id))
+        await message.channel.send(str(emoji))
+    await bot.processcommands(message)
