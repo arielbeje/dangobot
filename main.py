@@ -79,8 +79,9 @@ async def on_guild_remove(guild: discord.Guild):
 async def on_message(message: discord.Message):
     if not isinstance(message.channel, discord.abc.GuildChannel):
         return
-    messages = len(sql.fetch("SELECT 1 FROM messages WHERE serverid=?", str(message.guild.id)))
-    interval = int(await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(message.guild.id)))
+    await sql.execute("INSERT INTO messages VALUES (?, ?)", str(message.guild.id), str(message.id))
+    messages = len(await sql.fetch("SELECT 1 FROM messages WHERE serverid=?", str(message.guild.id)))
+    interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(message.guild.id)))[0][0]
     if messages >= interval:
         if not await sql.fetch("SELECT 1 FROM scoreboard WHERE serverid=? AND memberid=?",
                                str(message.server.id), str(message.author.id)):
