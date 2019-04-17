@@ -16,3 +16,7 @@ class InfoCog(commands.Cog):
         em.add_field(name="Creator", value="arielbeje - <@114814850621898755>")
         em.add_field(name="Source", value="[GitHub](https://github.com/arielbeje/dangobot)")
         await ctx.send(embed=em)
+
+
+def setup(bot):
+    bot.add_cog(InfoCog(bot))

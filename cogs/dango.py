@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 
 
-class DangoCog(commands.cog):
+class DangoCog(commands.Cog):
     def __init__(self, bot):
         super().__init__()
         self.bot = bot
@@ -53,3 +53,7 @@ class DangoCog(commands.cog):
                 people_with_score.sort()
                 message += f"**{score}** {', '.join(people_with_score)}\n"
         ctx.send(message)
+
+
+def setup(bot):
+    bot.add_cog(DangoCog(bot))
