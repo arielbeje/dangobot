@@ -67,10 +67,10 @@ class DangoCog(commands.Cog):
             scoreboard = {score: [] for score in scores}
             for member in members:
                 scoreboard[member[1]].append(member[0])
-            for score in scores:
+            for index, score in enumerate(scores):
                 people_with_score = [person.display_name for person in scoreboard[score]]
                 people_with_score.sort()
-                message += f"**{score}** {', '.join(people_with_score)}\n"
+                message += f"{index + 1}. **{score}** {', '.join(people_with_score)}\n"
         await ctx.send(message)
 
 
