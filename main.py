@@ -31,7 +31,7 @@ async def initdb():
         if "servers" not in tables:
             await sql.execute("CREATE TABLE servers (serverid varchar(20) PRIMARY KEY, prefix text, interval integer, emoji blob)")
         if "messages" not in tables:
-            await sql.execute("CREATE TABLE faq (serverid varchar(20), messageid varchar(20))")
+            await sql.execute("CREATE TABLE messages (serverid varchar(20), messageid varchar(20))")
         if "scoreboard" not in tables:
             await sql.execute("CREATE TABLE scoreboard (serverid varchar(20), memberid varchar(20), score integer)")
 
