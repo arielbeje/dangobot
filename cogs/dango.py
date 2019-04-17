@@ -47,7 +47,7 @@ class DangoCog(commands.Cog):
                            colour=discord.Colour.dark_green())
         await ctx.send(embed=em)
 
-    @commands.command(aliases=["scoreboard"])
+    @commands.command(aliases=["stats", "scoreboard"])
     async def leaderboard(self, ctx: commands.context):
         """Show the leaderboard"""
         people = await sql.fetch("SELECT memberid, score FROM scoreboard WHERE serverid=? ORDER BY score", str(ctx.message.guild.id))
