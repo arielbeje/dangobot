@@ -97,6 +97,10 @@ async def on_message(message: discord.Message):
             else:
                 emoji = await message.guild.fetch_emoji(int(emoji_info[0]))
             await message.channel.send(str(emoji))
+            try:
+                await message.add_reaction(emoji)
+            except discord.Forbidden:
+                pass
     await bot.process_commands(message)
 
 
