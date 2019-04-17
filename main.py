@@ -78,24 +78,25 @@ async def on_guild_remove(guild: discord.Guild):
 async def on_message(message: discord.Message):
     if not isinstance(message.channel, discord.abc.GuildChannel):
         return
-    await sql.execute("INSERT INTO messages VALUES (?, ?)", str(message.guild.id), str(message.id))
-    messages = len(await sql.fetch("SELECT 1 FROM messages WHERE serverid=?", str(message.guild.id)))
-    interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(message.guild.id)))[0][0]
-    if messages >= interval:
-        if not await sql.fetch("SELECT 1 FROM scoreboard WHERE serverid=? AND memberid=?",
-                               str(message.guild.id), str(message.author.id)):
-            await sql.execute("INSERT INTO scoreboard VALUES (?, ?, ?)",
-                              str(message.guild.id), str(message.author.id), 1)
-        else:
-            await sql.execute("UPDATE scoreboard SET score=score+1 WHERE serverid=? AND memberid=?",
-                              str(message.guild.id), str(message.author.id))
-        await sql.execute("DELETE FROM messages WHERE serverid=?", str(message.guild.id))
-        emoji_info = (await sql.fetch("SELECT emoji_id, emoji_char FROM servers WHERE serverid=?", str(message.guild.id)))[0]
-        if emoji_info[1] is not None:
-            emoji = emoji_info[1]
-        else:
-            emoji = await message.guild.fetch_emoji(int(emoji_info[0]))
-        await message.channel.send(str(emoji))
+    if not message.author.bot:
+        await sql.execute("INSERT INTO messages VALUES (?, ?)", str(message.guild.id), str(message.id))
+        messages = len(await sql.fetch("SELECT 1 FROM messages WHERE serverid=?", str(message.guild.id)))
+        interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(message.guild.id)))[0][0]
+        if messages >= interval:
+            if not await sql.fetch("SELECT 1 FROM scoreboard WHERE serverid=? AND memberid=?",
+                                   str(message.guild.id), str(message.author.id)):
+                await sql.execute("INSERT INTO scoreboard VALUES (?, ?, ?)",
+                                  str(message.guild.id), str(message.author.id), 1)
+            else:
+                await sql.execute("UPDATE scoreboard SET score=score+1 WHERE serverid=? AND memberid=?",
+                                  str(message.guild.id), str(message.author.id))
+            await sql.execute("DELETE FROM messages WHERE serverid=?", str(message.guild.id))
+            emoji_info = (await sql.fetch("SELECT emoji_id, emoji_char FROM servers WHERE serverid=?", str(message.guild.id)))[0]
+            if emoji_info[1] is not None:
+                emoji = emoji_info[1]
+            else:
+                emoji = await message.guild.fetch_emoji(int(emoji_info[0]))
+            await message.channel.send(str(emoji))
     await bot.process_commands(message)
 
 if __name__ == "__main__":
