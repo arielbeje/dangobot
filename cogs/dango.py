@@ -37,7 +37,7 @@ class DangoCog(commands.Cog):
         """Show the leaderboard"""
         people = await sql.fetch("SELECT memberid, score FROM scoreboard WHERE serverid=? ORDER BY score", str(ctx.message.guild.id))
         interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(ctx.message.guild.id)))[0][0]
-        emoji = pickle.loads(await sql.fetch("SELECT emoji FROM servers WHERE serverid=?", str(ctx.message.guild.id)))
+        emoji = pickle.loads((await sql.fetch("SELECT emoji FROM servers WHERE serverid=?", str(ctx.message.guild.id)))[0][0])
         total_dangos = sum([int(person[1]) for person in people]) if people is not None else 0
         message = f"{emoji} **Scoreboard** {emoji}"
         message += f"\n\nTotal dangos: **{total_dangos}**"
@@ -52,7 +52,7 @@ class DangoCog(commands.Cog):
                 people_with_score = [person.display_name for person in scoreboard[score]]
                 people_with_score.sort()
                 message += f"**{score}** {', '.join(people_with_score)}\n"
-        ctx.send(message)
+        await ctx.send(message)
 
 
 def setup(bot):
