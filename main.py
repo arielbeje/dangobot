@@ -93,7 +93,7 @@ async def on_message(message: discord.Message):
         await sql.execute("DELETE FROM messages WHERE serverid=?", str(message.guild.id))
         emoji = pickle.loads("SELECT emoji FROM servers WHERE serverid=?", str(message.server.id))
         await message.channel.send(str(emoji))
-    await bot.processcommands(message)
+    await bot.process_commands(message)
 
 if __name__ == "__main__":
     asyncio.get_event_loop().run_until_complete(initdb())
