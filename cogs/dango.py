@@ -63,14 +63,14 @@ class DangoCog(commands.Cog):
         message += f"\nEvery **{interval}** messages\n"
         if people is not None:
             members = [(ctx.guild.get_member(int(person[0])), person[1]) for person in people[:20]]
-            scores = [item[0] for item in groupby(people, itemgetter(1))]
+            scores = [item[0] for item in groupby(people, itemgetter(1))][::-1]
             scoreboard = {score: [] for score in scores}
             for member in members:
                 scoreboard[member[1]].append(member[0])
             for index, score in enumerate(scores):
                 people_with_score = [person.display_name for person in scoreboard[score]]
                 people_with_score.sort()
-                message += f"{index + 1}. **{score}** {', '.join(people_with_score)}\n"
+                message += f"{index + 1}. **{score}** ({', '.join(people_with_score)})\n"
         await ctx.send(message)
 
 
