@@ -15,6 +15,7 @@ class DangoCog(commands.Cog):
         type(self).__name__ = "Dango Commands"
 
     @commands.command(name="setemoji")
+    @commands.has_permissions(administrator=True)
     async def set_emoji(self, ctx: commands.Context, emoji: Union[discord.Emoji, str]):
         """Set a different emoji for the bot"""
         if isinstance(emoji, discord.Emoji):
@@ -27,6 +28,7 @@ class DangoCog(commands.Cog):
         await ctx.send(embed=em)
 
     @commands.command(name="setinterval")
+    @commands.has_permissions(administrator=True)
     async def set_interval(self, ctx: commands.Context, interval: int):
         """Set a different interval for the bot"""
         await sql.execute("UPDATE servers SET interval=? WHERE serverid=?", interval, str(ctx.message.guild.id))
