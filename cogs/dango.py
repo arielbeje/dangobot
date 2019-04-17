@@ -1,11 +1,11 @@
 from itertools import groupby
 from operator import itemgetter
 from utils import sql
-import pickle
-
 
 import discord
 from discord.ext import commands
+
+from typing import Union
 
 
 class DangoCog(commands.Cog):
@@ -15,9 +15,12 @@ class DangoCog(commands.Cog):
         type(self).__name__ = "Dango Commands"
 
     @commands.command(name="setemoji")
-    async def set_emoji(self, ctx: commands.Context, emoji: discord.Emoji):
+    async def set_emoji(self, ctx: commands.Context, emoji: Union[discord.Emoji, str]):
         """Set a different emoji for the bot"""
-        await sql.execute("UPDATE servers SET emoji=? WHERE serverid=?", pickle.dumps(emoji), str(ctx.message.guild.id))
+        if isinstance(emoji, discord.Emoji):
+            await sql.execute("UPDATE servers SET emoji_id=?, emoji_char=? WHERE serverid=?", emoji.id, None, str(ctx.message.guild.id))
+        else:
+            await sql.execute("UPDATE servers SET emoji_id=?, emoji_char=? WHERE serverid=?", None, emoji, str(ctx.message.guild.id))
         em = discord.Embed(title="Set emoji",
                            description=str(emoji),
                            colour=discord.Colour.dark_green())
@@ -26,7 +29,7 @@ class DangoCog(commands.Cog):
     @commands.command(name="setinterval")
     async def set_interval(self, ctx: commands.Context, interval: int):
         """Set a different interval for the bot"""
-        await sql.exceute("UPDATE servers SET interval=? WHERE serverid=?", interval, str(ctx.message.guild.id))
+        await sql.execute("UPDATE servers SET interval=? WHERE serverid=?", interval, str(ctx.message.guild.id))
         em = discord.Embed(title="Updated interval",
                            description=f"Updated interval is {interval}",
                            colour=discord.Colour.dark_green())
@@ -37,11 +40,15 @@ class DangoCog(commands.Cog):
         """Show the leaderboard"""
         people = await sql.fetch("SELECT memberid, score FROM scoreboard WHERE serverid=? ORDER BY score", str(ctx.message.guild.id))
         interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(ctx.message.guild.id)))[0][0]
-        emoji = pickle.loads((await sql.fetch("SELECT emoji FROM servers WHERE serverid=?", str(ctx.message.guild.id)))[0][0])
+        emoji_info = (await sql.fetch("SELECT emoji_id, emoji_char FROM servers WHERE serverid=?", str(ctx.message.guild.id)))[0]
+        if emoji_info[1] is not None:
+            emoji = emoji_info[1]
+        else:
+            emoji = await ctx.message.guild.fetch_emoji(int(emoji_info[0]))
         total_dangos = sum([int(person[1]) for person in people]) if people is not None else 0
         message = f"{emoji} **Scoreboard** {emoji}"
         message += f"\n\nTotal dangos: **{total_dangos}**"
-        message += f"\nEvery **{interval}** messages"
+        message += f"\nEvery **{interval}** messages\n"
         if people is not None:
             members = [(ctx.guild.get_member(int(person[0])), person[1]) for person in people[:20]]
             scores = [item[0] for item in groupby(people, itemgetter(1))]

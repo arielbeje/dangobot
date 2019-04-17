@@ -1,5 +1,4 @@
 import aiosqlite
-import pickle
 import logging
 from typing import List, Tuple, Union
 
@@ -44,7 +43,7 @@ async def executemany_queries(*queries: str):
 
 async def initserver(serverid: Union[int, str]):
     await executemany_queries(
-        ("INSERT INTO servers VALUES (?, ?, ?, ?)", str(serverid), "dango ", 100, pickle.dumps(u"🍡"))
+        ("INSERT INTO servers (serverid, prefix, interval, emoji_char) VALUES (?, ?, ?, ?)", str(serverid), "dango ", 100, "🍡")
     )
 
 

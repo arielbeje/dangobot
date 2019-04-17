@@ -1,6 +1,5 @@
 import asyncio
 import os
-import pickle
 from utils import sql
 
 import logging
@@ -29,7 +28,7 @@ async def initdb():
     tables = [table[0] for table in await sql.fetch("SELECT name FROM sqlite_master WHERE type='table'")]
     if any(table not in tables for table in ["servers", "messages", "scoreboard"]):
         if "servers" not in tables:
-            await sql.execute("CREATE TABLE servers (serverid varchar(20) PRIMARY KEY, prefix text, interval integer, emoji blob)")
+            await sql.execute("CREATE TABLE servers (serverid varchar(20) PRIMARY KEY, prefix text, interval integer, emoji_id varchar(20))")
         if "messages" not in tables:
             await sql.execute("CREATE TABLE messages (serverid varchar(20), messageid varchar(20))")
         if "scoreboard" not in tables:
@@ -84,14 +83,18 @@ async def on_message(message: discord.Message):
     interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(message.guild.id)))[0][0]
     if messages >= interval:
         if not await sql.fetch("SELECT 1 FROM scoreboard WHERE serverid=? AND memberid=?",
-                               str(message.server.id), str(message.author.id)):
+                               str(message.guild.id), str(message.author.id)):
             await sql.execute("INSERT INTO scoreboard VALUES (?, ?, ?)",
                               str(message.guild.id), str(message.author.id), 1)
         else:
             await sql.execute("UPDATE scoreboard SET score=score+1 WHERE serverid=? AND memberid=?",
-                              str(message.server.id), str(message.author.id))
+                              str(message.guild.id), str(message.author.id))
         await sql.execute("DELETE FROM messages WHERE serverid=?", str(message.guild.id))
-        emoji = pickle.loads("SELECT emoji FROM servers WHERE serverid=?", str(message.server.id))
+        emoji_info = (await sql.fetch("SELECT emoji_id, emoji_char FROM servers WHERE serverid=?", str(message.guild.id)))[0]
+        if emoji_info[1] is not None:
+            emoji = emoji_info[1]
+        else:
+            emoji = await message.guild.fetch_emoji(int(emoji_info[0]))
         await message.channel.send(str(emoji))
     await bot.process_commands(message)
 
