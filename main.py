@@ -86,10 +86,9 @@ async def on_message(message: discord.Message):
         return
     ctx = await bot.get_context(message)
     if not message.author.bot and not ctx.valid:
-        await sql.execute("INSERT INTO messages VALUES (?, ?)", str(message.guild.id), str(message.id))
         messages = len(await sql.fetch("SELECT 1 FROM messages WHERE serverid=?", str(message.guild.id)))
         interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(message.guild.id)))[0][0]
-        if messages >= interval:
+        if messages + 1 >= interval:
             if not await sql.fetch("SELECT 1 FROM scoreboard WHERE serverid=? AND memberid=?",
                                    str(message.guild.id), str(message.author.id)):
                 await sql.execute("INSERT INTO scoreboard VALUES (?, ?, ?)",
@@ -108,6 +107,8 @@ async def on_message(message: discord.Message):
                 await message.add_reaction(emoji)
             except discord.Forbidden:
                 pass
+        else:
+            await sql.execute("INSERT INTO messages VALUES (?, ?)", str(message.guild.id), str(message.id))
     else:
         await bot.invoke(ctx)
 
