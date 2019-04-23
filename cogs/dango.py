@@ -50,7 +50,7 @@ class DangoCog(commands.Cog):
     @commands.command(aliases=["stats", "scoreboard"])
     async def leaderboard(self, ctx: commands.context):
         """Show the leaderboard"""
-        people = await sql.fetch("SELECT memberid, score FROM scoreboard WHERE serverid=? ORDER BY score", str(ctx.message.guild.id))
+        people = await sql.fetch("SELECT memberid, score FROM scoreboard WHERE serverid=? ORDER BY score DESC", str(ctx.message.guild.id))
         interval = (await sql.fetch("SELECT interval FROM servers WHERE serverid=?", str(ctx.message.guild.id)))[0][0]
         emoji_info = (await sql.fetch("SELECT emoji_id, emoji_char FROM servers WHERE serverid=?", str(ctx.message.guild.id)))[0]
         if emoji_info[1] is not None:
@@ -63,7 +63,7 @@ class DangoCog(commands.Cog):
         message += f"\nEvery **{interval}** messages\n"
         if people is not None:
             members = [(ctx.guild.get_member(int(person[0])), person[1]) for person in people[:20]]
-            scores = [item[0] for item in groupby(people, itemgetter(1))][::-1]
+            scores = [item[0] for item in groupby(people, itemgetter(1))]
             scoreboard = {score: [] for score in scores}
             for member in members:
                 scoreboard[member[1]].append(member[0])
