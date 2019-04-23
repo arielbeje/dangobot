@@ -75,6 +75,12 @@ async def on_guild_remove(guild: discord.Guild):
 
 
 @bot.event
+async def on_member_remove(member: discord.Member):
+    await sql.execute("DELETE FROM scoreboard WHERE serverid=? AND memberid=?",
+                      str(member.guild.id), str(member.id))
+
+
+@bot.event
 async def on_message(message: discord.Message):
     if not isinstance(message.channel, discord.abc.GuildChannel):
         return
