@@ -13,6 +13,7 @@ aiosqlite = "^0.10.0"
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
 rope = "^0.14.0"
+yapf = "^0.27.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

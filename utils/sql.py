@@ -21,7 +21,8 @@ async def execute(query: str, *args: Union[str, int]):
         await db.commit()
 
 
-async def fetch(query: str, *args: Union[str, int]) -> Union[List[Tuple[str]], List[Tuple[int]], None]:
+async def fetch(query: str, *args: Union[str, int]
+                ) -> Union[List[Tuple[str]], List[Tuple[int]], None]:
     async with aiosqlite.connect(DB_FILE) as db:
         cursor = await db.execute(query, args)
         rows = await cursor.fetchall()
@@ -42,13 +43,15 @@ async def executemany_queries(*queries: str):
 
 
 async def initserver(serverid: Union[int, str]):
-    await executemany_queries(
-        ("INSERT INTO servers (serverid, prefix, interval, emoji_char) VALUES (?, ?, ?, ?)", str(serverid), "dango ", 100, "🍡")
-    )
+    await executemany_queries((
+        "INSERT INTO servers (serverid, prefix, interval, emoji_char) VALUES (?, ?, ?, ?)",
+        str(serverid), "dango ", 100, "🍡"))
 
 
 async def deleteserver(serverid: Union[int, str]):
-    queries = ["DELETE FROM servers WHERE serverid=?",
-               "DELETE FROM messages WHERE serverid=?",
-               "DELETE FROM scoreboard WHERE serverid=?"]
+    queries = [
+        "DELETE FROM servers WHERE serverid=?",
+        "DELETE FROM messages WHERE serverid=?",
+        "DELETE FROM scoreboard WHERE serverid=?"
+    ]
     await executemany_queries(*[(query, str(serverid)) for query in queries])
