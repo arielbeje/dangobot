@@ -1,9 +1,13 @@
 [tool.poetry]
 name = "dangobot"
-version = "0.1.0"
+version = "1.0.0"
 description = "A bot to give a specific emoji every specified amount of messages."
 authors = ["arielbeje <arielbeje@protonmail.com>"]
 license = "MIT"
+packages = [
+    {include = "main.py"},
+    {include = "cogs"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
