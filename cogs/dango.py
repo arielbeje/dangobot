@@ -8,6 +8,15 @@ from discord.ext import commands
 from typing import Union
 
 
+async def get_dangos(ctx: commands.Context, member: discord.Member) -> int:
+    person = await sql.fetch(
+        "SELECT score FROM scoreboard WHERE serverid=? AND memberid=?",
+        str(ctx.message.guild.id), str(member.id))
+    if len(person) == 0:
+        return 0
+    return person[0][0]
+
+
 class DangoCog(commands.Cog):
     def __init__(self, bot):
         super().__init__()
@@ -56,28 +65,19 @@ class DangoCog(commands.Cog):
 
     @commands.command(aliases=["stats", "scoreboard"])
     async def leaderboard(self,
-                          ctx: commands.context,
+                          ctx: commands.Context,
                           member: Union[discord.Member, str] = None):
         """Show the leaderboard. Can also be used for a specific person."""
         if member is not None and (isinstance(member, discord.Member)
                                    or type(member) is str
                                    and member.lower() == "me"):
             if isinstance(member, discord.Member):
-                person = await sql.fetch(
-                    "SELECT score FROM scoreboard WHERE serverid=? AND memberid=?",
-                    str(ctx.message.guild.id), str(member.id))
-            elif type(member) is str:
-                person = await sql.fetch(
-                    "SELECT score FROM scoreboard WHERE serverid=? AND memberid=?",
-                    str(ctx.message.guild.id), str(ctx.message.author.id))
-            if len(person) == 0:
-                score = 0
-            else:
-                score = person[0][0]
-            if type(member) is str:
-                name = ctx.message.author.display_name
-            else:
                 name = member.display_name
+                score = await get_dangos(ctx, member)
+            elif type(member) is str:
+                author = ctx.message.author
+                name = author.display_name
+                score = await get_dangos(ctx, author)
             await ctx.send(f"{name} has {score} dangos.")
         else:
             people = await sql.fetch(
@@ -114,6 +114,12 @@ class DangoCog(commands.Cog):
                     people_with_score.sort()
                     message += f"{index + 1}. **{score}** ({', '.join(people_with_score)})\n"
             await ctx.send(message)
+
+    @commands.command()
+    async def me(self, ctx: commands.Context):
+        author = ctx.message.author
+        score = await get_dangos(ctx, author)
+        await ctx.send(f"{author.display_name} has {score} dangos.")
 
 
 def setup(bot):
