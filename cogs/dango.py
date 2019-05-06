@@ -45,7 +45,7 @@ class DangoCog(commands.Cog):
 
     @commands.command(name="setprefix")
     @commands.has_permissions(administrator=True)
-    async def set_perfix(self, ctx: commands.Context, *, prefix: str):
+    async def set_prefix(self, ctx: commands.Context, *, prefix: str):
         """Set a different prefix for the bot"""
         await sql.execute("UPDATE servers SET prefix=? WHERE serverid=?",
                           prefix, str(ctx.message.guild.id))
