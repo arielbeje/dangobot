@@ -78,7 +78,7 @@ class DangoCog(commands.Cog):
         if people is not None:
             members = [(ctx.guild.get_member(int(person[0])), person[1])
                        for person in people[:20]]
-            scores = [item[0] for item in groupby(people, itemgetter(1))]
+            scores = [item[0] for item in groupby(people[:20], itemgetter(1))]
             scoreboard = {score: [] for score in scores}
             for member in members:
                 scoreboard[member[1]].append(member[0])
