@@ -55,40 +55,65 @@ class DangoCog(commands.Cog):
         await ctx.send(embed=em)
 
     @commands.command(aliases=["stats", "scoreboard"])
-    async def leaderboard(self, ctx: commands.context):
-        """Show the leaderboard"""
-        people = await sql.fetch(
-            "SELECT memberid, score FROM scoreboard WHERE serverid=? ORDER BY score DESC",
-            str(ctx.message.guild.id))
-        interval = (await
-                    sql.fetch("SELECT interval FROM servers WHERE serverid=?",
-                              str(ctx.message.guild.id)))[0][0]
-        emoji_info = (await sql.fetch(
-            "SELECT emoji_id, emoji_char FROM servers WHERE serverid=?",
-            str(ctx.message.guild.id)))[0]
-        if emoji_info[1] is not None:
-            emoji = emoji_info[1]
+    async def leaderboard(self,
+                          ctx: commands.context,
+                          member: Union[discord.Member, str] = None):
+        """Show the leaderboard. Can also be used for a specific person."""
+        if member is not None and (isinstance(member, discord.Member)
+                                   or type(member) is str
+                                   and member.lower() == "me"):
+            if isinstance(member, discord.Member):
+                person = await sql.fetch(
+                    "SELECT score FROM scoreboard WHERE serverid=? AND memberid=?",
+                    str(ctx.message.guild.id), str(member.id))
+            elif type(member) is str:
+                person = await sql.fetch(
+                    "SELECT score FROM scoreboard WHERE serverid=? AND memberid=?",
+                    str(ctx.message.guild.id), str(ctx.message.author.id))
+            if len(person) == 0:
+                score = 0
+            else:
+                score = person[0][0]
+            if type(member) is str:
+                name = ctx.message.author.display_name
+            else:
+                name = member.display_name
+            await ctx.send(f"{name} has {score} dangos.")
         else:
-            emoji = await ctx.message.guild.fetch_emoji(int(emoji_info[0]))
-        total_dangos = sum([int(person[1])
-                            for person in people]) if people is not None else 0
-        message = f"{emoji} **Scoreboard** {emoji}"
-        message += f"\n\nTotal dangos: **{total_dangos}**"
-        message += f"\nEvery **{interval}** messages\n"
-        if people is not None:
-            members = [(ctx.guild.get_member(int(person[0])), person[1])
-                       for person in people[:20]]
-            scores = [item[0] for item in groupby(people[:20], itemgetter(1))]
-            scoreboard = {score: [] for score in scores}
-            for member in members:
-                scoreboard[member[1]].append(member[0])
-            for index, score in enumerate(scores):
-                people_with_score = [
-                    person.display_name for person in scoreboard[score]
+            people = await sql.fetch(
+                "SELECT memberid, score FROM scoreboard WHERE serverid=? ORDER BY score DESC",
+                str(ctx.message.guild.id))
+            interval = (await sql.fetch(
+                "SELECT interval FROM servers WHERE serverid=?",
+                str(ctx.message.guild.id)))[0][0]
+            emoji_info = (await sql.fetch(
+                "SELECT emoji_id, emoji_char FROM servers WHERE serverid=?",
+                str(ctx.message.guild.id)))[0]
+            if emoji_info[1] is not None:
+                emoji = emoji_info[1]
+            else:
+                emoji = await ctx.message.guild.fetch_emoji(int(emoji_info[0]))
+            total_dangos = sum([int(person[1]) for person in people
+                                ]) if people is not None else 0
+            message = f"{emoji} **Scoreboard** {emoji}"
+            message += f"\n\nTotal dangos: **{total_dangos}**"
+            message += f"\nEvery **{interval}** messages\n"
+            if people is not None:
+                members = [(ctx.guild.get_member(int(person[0])), person[1])
+                           for person in people[:20]]
+                scores = [
+                    item[0] for item in groupby(people[:20], itemgetter(1))
                 ]
-                people_with_score.sort()
-                message += f"{index + 1}. **{score}** ({', '.join(people_with_score)})\n"
-        await ctx.send(message)
+                scoreboard = {score: [] for score in scores}
+                for member in members:
+                    scoreboard[member[1]].append(member[0])
+                for index, score in enumerate(scores):
+                    people_with_score = [
+                        person.display_name for person in scoreboard[score]
+                    ]
+                    people_with_score.sort()
+                    message += f"{index + 1}. **{score}** ({', '.join(people_with_score)})\n"
+            await ctx.send(message)
 
 
 def setup(bot):
